@@ -1,32 +1,32 @@
-# 🚀 NeuralBridge - Setup Rápido
+# 🚀 NeuralBridge - Quick Setup
 
-## ⚡ Configuração em 3 Passos
+## ⚡ Configuration in 3 Steps
 
-### 1️⃣ Clone e Configure
+### 1️⃣ Clone and Configure
 
 ```bash
-# Clone o projeto
+# Clone the project
 git clone <repository-url>
 cd neural_bridge
 
-# Instale dependências
+# Install dependencies
 mix setup
 mix ecto.create
 mix ecto.migrate
 ```
 
-### 2️⃣ Configure seu Provedor LLM
+### 2️⃣ Configure your LLM Provider
 
-**Opção A - OpenAI:**
+**Option A - OpenAI:**
 ```bash
 echo "LLM_PROVIDER=openai" > .env
 echo "OPENAI_API_KEY=sk-your-key-here" >> .env
 echo "OPENAI_DEFAULT_MODEL=gpt-4" >> .env
 ```
 
-**Opção B - Ollama:**
+**Option B - Ollama:**
 ```bash
-# Instale Ollama primeiro
+# Install Ollama first
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull llama2
 
@@ -35,45 +35,45 @@ echo "LLM_PROVIDER=ollama" > .env
 echo "OLLAMA_DEFAULT_MODEL=llama2" >> .env
 ```
 
-### 3️⃣ Execute e Teste
+### 3️⃣ Run and Test
 
 ```bash
-# Inicie o servidor
+# Start the server
 mix phx.server
 
-# Teste a configuração
+# Test the configuration
 curl http://localhost:4000/api/proxy/health
 
-# Faça uma pergunta
+# Ask a question
 curl -X POST "http://localhost:4000/api/proxy/query" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Olá, como você está?",
+    "query": "Hello, how are you?",
     "session_id": "test_123"
   }'
 ```
 
-## 🔧 Configuração Avançada
+## 🔧 Advanced Configuration
 
-Para configuração completa, veja:
-- [CONFIG_GUIDE.md](docs/CONFIG_GUIDE.md) - Guia detalhado de configuração
-- [.env.example](.env.example) - Todas as opções disponíveis
+For complete configuration, see:
+- [CONFIG_GUIDE.md](CONFIG_GUIDE.md) - Detailed configuration guide
+- [../.env.example](../.env.example) - All available options
 
-## 🤖 Mudança de Provedor
+## 🤖 Provider Switch
 
 ```bash
-# Para trocar de OpenAI para Ollama
+# To switch from OpenAI to Ollama
 sed -i 's/LLM_PROVIDER=openai/LLM_PROVIDER=ollama/' .env
 
-# Reinicie o servidor
+# Restart the server
 mix phx.server
 ```
 
-## ✅ Verificação
+## ✅ Verification
 
-- ✅ Servidor rodando em `http://localhost:4000`
-- ✅ Health check funcionando
-- ✅ API respondendo com provedor configurado
-- ✅ Cache, RAG e Guardrails ativos
+- ✅ Server running at `http://localhost:4000`
+- ✅ Health check working
+- ✅ API responding with configured provider
+- ✅ Cache, RAG and Guardrails active
 
-**🎉 Pronto! Seu proxy LLM está funcionando.**
+**🎉 Ready! Your LLM proxy is working.**
