@@ -3,7 +3,7 @@ defmodule NeuralBridge.LLM do
 
   @max_retries 3
 
-  # Configurações baseadas em variáveis de ambiente
+  # Configuration based on environment variables
   def config do
     %{
       provider: System.get_env("LLM_PROVIDER", "openai") |> String.to_atom(),
@@ -24,7 +24,7 @@ defmodule NeuralBridge.LLM do
   def generate_response(query, context \\ "", rag_context \\ [], opts \\ []) do
     cfg = config()
 
-    # Usar configuração padrão do ambiente se não especificado
+    # Use default environment configuration if not specified
     provider = Keyword.get(opts, :provider, cfg.provider)
     model = Keyword.get(opts, :model, get_default_model(provider, cfg))
     streaming = Keyword.get(opts, :streaming, false)
@@ -62,7 +62,7 @@ defmodule NeuralBridge.LLM do
     end
   end
 
-  # Funções auxiliares para configuração
+  # Helper functions for configuration
   defp get_default_model(:openai, cfg), do: cfg.openai.default_model
   defp get_default_model(:ollama, cfg), do: cfg.ollama.default_model
   defp get_default_model(_, _), do: "gpt-4"
