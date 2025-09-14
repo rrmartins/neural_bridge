@@ -1,146 +1,146 @@
-# 🧠 NeuralBridge - Proxy LLM Inteligente
+# 🧠 NeuralBridge - Intelligent LLM Proxy
 
-> **Proxy avançado entre aplicações e provedores de LLM com configuração via .env**
+> **Advanced proxy between applications and LLM providers with .env configuration**
 
-NeuralBridge é um proxy inteligente que atua como intermediário entre suas aplicações e diferentes provedores de LLM (OpenAI, Ollama), implementando cache inteligente, RAG (Retrieval-Augmented Generation), guardrails de segurança e fallback automático. Configure facilmente via variáveis de ambiente qual provedor usar como padrão.
+NeuralBridge is an intelligent proxy that acts as an intermediary between your applications and different LLM providers (OpenAI, Ollama), implementing intelligent caching, RAG (Retrieval-Augmented Generation), security guardrails, and automatic fallback. Easily configure which provider to use as default via environment variables.
 
-## ✨ Características Principais
+## ✨ Key Features
 
-- ⚙️ **Configuração .env** - Defina o provedor padrão (OpenAI/Ollama) via variáveis de ambiente
-- 🔄 **Pipeline Inteligente** - Cache → RAG → LLM → API B (fallback)
-- 🤖 **Multi-Provider** - OpenAI e Ollama com modelos configuráveis
-- 🧠 **RAG Integrado** - Busca semântica em base de conhecimento
-- 🛡️ **Guardrails** - Validação de segurança e qualidade
-- 📊 **Observabilidade** - Métricas em tempo real e telemetria
-- 🔄 **Background Jobs** - Processamento assíncrono de embeddings e treinamento
-- 💾 **Cache Híbrido** - Memória + PostgreSQL persistente
-- 🌐 **WebSockets** - Streaming de respostas em tempo real
+- ⚙️ **.env Configuration** - Define default provider (OpenAI/Ollama) via environment variables
+- 🔄 **Intelligent Pipeline** - Cache → RAG → LLM → API B (fallback)
+- 🤖 **Multi-Provider** - OpenAI and Ollama with configurable models
+- 🧠 **Integrated RAG** - Semantic search in knowledge base
+- 🛡️ **Guardrails** - Security and quality validation
+- 📊 **Observability** - Real-time metrics and telemetry
+- 🔄 **Background Jobs** - Asynchronous processing of embeddings and training
+- 💾 **Hybrid Cache** - Memory + persistent PostgreSQL
+- 🌐 **WebSockets** - Real-time response streaming
 
-## 🚀 Início Rápido
+## 🚀 Quick Start
 
-### 1. Instalação
+### 1. Installation
 
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone <repository-url>
 cd neural_bridge
 
-# Instale dependências
+# Install dependencies
 mix setup
 
-# Configure o banco de dados
+# Setup the database
 mix ecto.create
 mix ecto.migrate
 ```
 
-### 2. Configuração (.env)
+### 2. Configuration (.env)
 
-**Opção 1 - OpenAI:**
+**Option 1 - OpenAI:**
 ```bash
-# Copie o arquivo de exemplo
+# Copy the example file
 cp .env.example .env
 
-# Configure para OpenAI
+# Configure for OpenAI
 echo "LLM_PROVIDER=openai" > .env
 echo "OPENAI_API_KEY=sk-your-key-here" >> .env
 echo "OPENAI_DEFAULT_MODEL=gpt-4" >> .env
 ```
 
-**Opção 2 - Ollama:**
+**Option 2 - Ollama:**
 ```bash
-# Instale Ollama
+# Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Baixe modelos
+# Download models
 ollama pull llama2
 
-# Configure para Ollama
+# Configure for Ollama
 echo "LLM_PROVIDER=ollama" > .env
 echo "OLLAMA_DEFAULT_MODEL=llama2" >> .env
 ```
 
-### 3. Execução
+### 3. Execution
 
 ```bash
-# Inicie o servidor
+# Start the server
 mix phx.server
 
-# Teste a configuração
+# Test the configuration
 curl http://localhost:4000/api/proxy/health
 ```
 
-## 🔧 Configuração via .env
+## 🔧 Configuration via .env
 
-O NeuralBridge usa variáveis de ambiente para determinar automaticamente qual provedor LLM usar:
+NeuralBridge uses environment variables to automatically determine which LLM provider to use:
 
-### Arquivo .env exemplo:
+### Example .env file:
 
 ```bash
-# Provedor principal (openai ou ollama)
+# Main provider (openai or ollama)
 LLM_PROVIDER=ollama
 
-# Configuração OpenAI
+# OpenAI configuration
 OPENAI_API_KEY=sk-your-key-here
 OPENAI_DEFAULT_MODEL=gpt-4
 OPENAI_DEFAULT_TEMPERATURE=0.7
 
-# Configuração Ollama
+# Ollama configuration
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_DEFAULT_MODEL=llama2
 
-# Cache e outras configurações
+# Cache and other settings
 CACHE_ENABLED=true
 CACHE_TTL_SECONDS=3600
 ```
 
-### Modelos Suportados:
+### Supported Models:
 
 **OpenAI:** `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`
 
-**Ollama:** `llama2`, `codellama`, `mistral`, `neural-chat`, modelos personalizados (`llama2:7b-chat`)
+**Ollama:** `llama2`, `codellama`, `mistral`, `neural-chat`, custom models (`llama2:7b-chat`)
 
 ## 📡 API REST
 
-### Endpoint Principal
+### Main Endpoint
 
 ```bash
-# Usa configuração padrão do .env
+# Uses default .env configuration
 curl -X POST "http://localhost:4000/api/proxy/query" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Explique machine learning",
-    "session_id": "minha_sessao_123"
+    "query": "Explain machine learning",
+    "session_id": "my_session_123"
   }'
 
-# Override do provedor na requisição
+# Provider override in request
 curl -X POST "http://localhost:4000/api/proxy/query" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Explique machine learning",
-    "session_id": "minha_sessao_123",
+    "query": "Explain machine learning",
+    "session_id": "my_session_123",
     "provider": "openai",
     "model": "gpt-4"
   }'
 ```
 
-### Endpoints de Monitoramento
+### Monitoring Endpoints
 
 ```bash
-# Verificar saúde
+# Check health
 curl http://localhost:4000/api/proxy/health
 
-# Obter estatísticas
+# Get statistics
 curl http://localhost:4000/api/proxy/stats
 ```
 
-## 🔄 Pipeline de Processamento
+## 🔄 Processing Pipeline
 
 ```
-1. 💾 Cache Check → Resposta instantânea se encontrada
-2. 🧠 RAG Retrieval → Busca contexto na base de conhecimento
-3. 🤖 LLM Generation → OpenAI ou Ollama
-4. 🛡️ Guardrails → Validação de segurança
-5. 🔄 API B Fallback → Fallback automático se necessário
+1. 💾 Cache Check → Instant response if found
+2. 🧠 RAG Retrieval → Search context in knowledge base
+3. 🤖 LLM Generation → OpenAI or Ollama
+4. 🛡️ Guardrails → Security validation
+5. 🔄 API B Fallback → Automatic fallback if needed
 ```
 
 ## 📊 Observabilidade
@@ -168,71 +168,71 @@ curl http://localhost:4000/api/proxy/stats
               └─────────┘    └──────────┘
 ```
 
-### Componentes Principais:
+### Main Components:
 
-- **ConversationServer** - GenServer para gestão de sessões
-- **Cache** - Sistema híbrido Cachex + PostgreSQL
-- **RAG** - Retrieval-Augmented Generation com embeddings
-- **LLM** - Cliente unificado OpenAI/Ollama
-- **Guardrails** - Validação de segurança e qualidade
-- **Background Jobs** - Oban para processamento assíncrono
+- **ConversationServer** - GenServer for session management
+- **Cache** - Hybrid Cachex + PostgreSQL system
+- **RAG** - Retrieval-Augmented Generation with embeddings
+- **LLM** - Unified OpenAI/Ollama client
+- **Guardrails** - Security and quality validation
+- **Background Jobs** - Oban for asynchronous processing
 
-## 📚 Documentação
+## 📚 Documentation
 
-- **[Guia de Configuração](docs/CONFIG_GUIDE.md)** - Setup detalhado OpenAI/Ollama
-- **[API Interactions](docs/API_INTERACTIONS.md)** - Documentação completa da API
-- **[WebSocket Guide](docs/WEBSOCKET_INTERACTIONS.md)** - Streaming em tempo real
-- **[Background Jobs](docs/BACKGROUND_JOBS.md)** - Sistema de jobs assíncronos
+- **[Configuration Guide](docs/CONFIG_GUIDE.md)** - Detailed OpenAI/Ollama setup
+- **[API Interactions](docs/API_INTERACTIONS.md)** - Complete API documentation
+- **[WebSocket Guide](docs/WEBSOCKET_INTERACTIONS.md)** - Real-time streaming
+- **[Background Jobs](docs/BACKGROUND_JOBS.md)** - Asynchronous job system
 
-## 🛠️ Desenvolvimento
+## 🛠️ Development
 
-### Estrutura de Arquivos
+### File Structure
 
 ```
 lib/
 ├── neural_bridge/
-│   ├── application.ex          # Supervisor principal
-│   ├── conversation_server.ex  # Gestão de sessões
-│   ├── cache.ex               # Sistema de cache
+│   ├── application.ex          # Main supervisor
+│   ├── conversation_server.ex  # Session management
+│   ├── cache.ex               # Cache system
 │   ├── rag.ex                 # Retrieval-Augmented Generation
-│   ├── llm.ex                 # Cliente LLM unificado
-│   ├── guardrails.ex          # Validações de segurança
+│   ├── llm.ex                 # Unified LLM client
+│   ├── guardrails.ex          # Security validations
 │   └── workers/               # Background jobs
 └── neural_bridge_web/
     ├── channels/              # WebSocket channels
     ├── controllers/           # REST controllers
-    └── router.ex             # Roteamento
+    └── router.ex             # Routing
 ```
 
 ### Background Jobs
 
-- **EmbedJob** - Geração de embeddings para RAG
-- **TrainJob** - Treinamento de modelos (fine-tuning/distillation)
-- **CacheCleanupWorker** - Limpeza automática de cache
-- **TrainingDatasetWorker** - Análise e trigger de treinamentos
+- **EmbedJob** - Embedding generation for RAG
+- **TrainJob** - Model training (fine-tuning/distillation)
+- **CacheCleanupWorker** - Automatic cache cleanup
+- **TrainingDatasetWorker** - Analysis and training triggers
 
-### Executar Testes
+### Run Tests
 
 ```bash
 mix test
 ```
 
-### Executar em Desenvolvimento
+### Run in Development
 
 ```bash
-# Com live reloading
+# With live reloading
 mix phx.server
 
-# No console interativo
+# In interactive console
 iex -S mix phx.server
 ```
 
-## 📈 Monitoramento em Produção
+## 📈 Production Monitoring
 
-### Métricas Disponíveis
+### Available Metrics
 
 - Cache hit/miss rates
-- Response times por provider
+- Response times per provider
 - Confidence scores
 - API B fallback rates
 - Training job performance
@@ -245,15 +245,15 @@ iex -S mix phx.server
 - LLM provider availability
 - API B connectivity
 
-## 🔐 Segurança
+## 🔐 Security
 
-- **Guardrails** automáticos para validação de conteúdo
-- **PII Detection** e remoção
-- **Rate limiting** por sessão
+- **Automatic Guardrails** for content validation
+- **PII Detection** and removal
+- **Rate limiting** per session
 - **Input sanitization**
 - **Secure session management**
 
-## 🚀 Deploy em Produção
+## 🚀 Production Deployment
 
 ```bash
 # Build release
@@ -263,7 +263,7 @@ MIX_ENV=prod mix release
 _build/prod/rel/neural_bridge/bin/neural_bridge start
 ```
 
-### Variáveis de Ambiente
+### Environment Variables
 
 ```bash
 # LLM Providers
@@ -281,19 +281,19 @@ CACHE_MAX_SIZE=10000
 SECRET_KEY_BASE=your-secret-key
 ```
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma feature branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links Úteis
+## 🔗 Useful Links
 
 - **Phoenix Framework**: https://www.phoenixframework.org/
 - **OpenAI API**: https://platform.openai.com/docs
@@ -303,4 +303,4 @@ Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICEN
 
 ---
 
-**🎉 Comece agora: `mix phx.server` e acesse `http://localhost:4000`**
+**🎉 Get started now: `mix phx.server` and access `http://localhost:4000`**
