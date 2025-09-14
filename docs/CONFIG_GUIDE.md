@@ -1,57 +1,57 @@
-# 🔧 NeuralBridge - Guia de Configuração (.env)
+# 🔧 NeuralBridge - Configuration Guide (.env)
 
-## 🎯 Visão Geral
+## 🎯 Overview
 
-Este guia explica como configurar o NeuralBridge usando variáveis de ambiente (`.env`) para determinar automaticamente qual provedor LLM usar (OpenAI ou Ollama) e personalizar todas as configurações do sistema.
+This guide explains how to configure NeuralBridge using environment variables (`.env`) to automatically determine which LLM provider to use (OpenAI or Ollama) and customize all system settings.
 
 ---
 
-## 📁 Configuração Básica
+## 📁 Basic Configuration
 
-### 1. Copie o arquivo de exemplo
+### 1. Copy the example file
 
 ```bash
 cp .env.example .env
 ```
 
-### 2. Configure seu provedor principal
+### 2. Configure your main provider
 
-O NeuralBridge automaticamente usa o provedor definido em `LLM_PROVIDER`:
+NeuralBridge automatically uses the provider defined in `LLM_PROVIDER`:
 
 ```bash
-# Para usar OpenAI como padrão
+# To use OpenAI as default
 LLM_PROVIDER=openai
 
-# Para usar Ollama como padrão
+# To use Ollama as default
 LLM_PROVIDER=ollama
 ```
 
 ---
 
-## 🤖 Configuração OpenAI
+## 🤖 OpenAI Configuration
 
-Para usar OpenAI como provedor principal, configure:
+To use OpenAI as the main provider, configure:
 
 ```bash
-# Provedor principal
+# Main provider
 LLM_PROVIDER=openai
 
-# Chave da API (obtenha em: https://platform.openai.com/api-keys)
+# API key (get it from: https://platform.openai.com/api-keys)
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
-# Configurações opcionais
+# Optional settings
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_DEFAULT_MODEL=gpt-4
 OPENAI_DEFAULT_TEMPERATURE=0.7
 OPENAI_MAX_TOKENS=2048
 ```
 
-### Modelos OpenAI Disponíveis:
-- `gpt-4` - Mais inteligente
-- `gpt-4-turbo` - Velocidade otimizada
-- `gpt-3.5-turbo` - Custo-benefício
+### Available OpenAI Models:
+- `gpt-4` - Most intelligent
+- `gpt-4-turbo` - Optimized speed
+- `gpt-3.5-turbo` - Cost-effective
 
-### Exemplo completo para OpenAI:
+### Complete example for OpenAI:
 
 ```bash
 # .env
@@ -63,20 +63,20 @@ OPENAI_DEFAULT_TEMPERATURE=0.7
 
 ---
 
-## 🦙 Configuração Ollama
+## 🦙 Ollama Configuration
 
-Para usar Ollama como provedor principal:
+To use Ollama as the main provider:
 
-### 1. Instale o Ollama
+### 1. Install Ollama
 
 ```bash
 # macOS/Linux
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Windows: baixe de https://ollama.com/download
+# Windows: download from https://ollama.com/download
 ```
 
-### 2. Baixe modelos
+### 2. Download models
 
 ```bash
 ollama pull llama2
@@ -85,27 +85,27 @@ ollama pull mistral
 ollama pull neural-chat
 ```
 
-### 3. Configure o .env
+### 3. Configure .env
 
 ```bash
-# Provedor principal
+# Main provider
 LLM_PROVIDER=ollama
 
-# URL do Ollama (padrão: localhost:11434)
+# Ollama URL (default: localhost:11434)
 OLLAMA_BASE_URL=http://localhost:11434
 
-# Modelo padrão
+# Default model
 OLLAMA_DEFAULT_MODEL=llama2
 ```
 
-### Modelos Ollama Suportados:
-- `llama2` - Modelo geral robusto
-- `codellama` - Especializado em código
-- `mistral` - Modelo eficiente europeu
-- `neural-chat` - Otimizado para conversas
-- Modelos personalizados: `llama2:7b-chat`, `llama2:13b-chat`, etc.
+### Supported Ollama Models:
+- `llama2` - Robust general model
+- `codellama` - Specialized in code
+- `mistral` - Efficient European model
+- `neural-chat` - Optimized for conversations
+- Custom models: `llama2:7b-chat`, `llama2:13b-chat`, etc.
 
-### Exemplo completo para Ollama:
+### Complete example for Ollama:
 
 ```bash
 # .env
@@ -116,30 +116,30 @@ OLLAMA_DEFAULT_MODEL=codellama
 
 ---
 
-## 🔄 Mudança Dinâmica de Provedor
+## 🔄 Dynamic Provider Switching
 
-### Via Variável de Ambiente
+### Via Environment Variable
 
 ```bash
-# Usar OpenAI
+# Use OpenAI
 export LLM_PROVIDER=openai
 mix phx.server
 
-# Usar Ollama
+# Use Ollama
 export LLM_PROVIDER=ollama
 mix phx.server
 ```
 
-### Via API (override por requisição)
+### Via API (per-request override)
 
-Mesmo com um provedor padrão configurado, você pode especificar outro na requisição:
+Even with a default provider configured, you can specify another in the request:
 
 ```bash
-# Servidor configurado para Ollama, mas usando OpenAI nesta chamada
+# Server configured for Ollama, but using OpenAI for this call
 curl -X POST "http://localhost:4000/api/proxy/query" \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "Explique machine learning",
+    "query": "Explain machine learning",
     "session_id": "test_123",
     "provider": "openai",
     "model": "gpt-4"
@@ -148,9 +148,9 @@ curl -X POST "http://localhost:4000/api/proxy/query" \
 
 ---
 
-## 📋 Arquivo .env Completo
+## 📋 Complete .env File
 
-Aqui está um exemplo completo de `.env` com todas as opções:
+Here's a complete example of `.env` with all options:
 
 ```bash
 # ================================
