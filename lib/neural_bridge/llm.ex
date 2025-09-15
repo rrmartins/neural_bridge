@@ -35,10 +35,10 @@ defmodule NeuralBridge.LLM do
 
     case provider do
       :openai ->
-        call_openai_chat(messages, model, temperature, streaming)
+        call_openai_chat(messages, model, temperature, streaming, cfg)
 
       :ollama ->
-        call_ollama_chat(messages, model, temperature, streaming)
+        call_ollama_chat(messages, model, temperature, streaming, cfg)
 
       _ ->
         {:error, :unsupported_provider}
@@ -52,10 +52,10 @@ defmodule NeuralBridge.LLM do
 
     case provider do
       :openai ->
-        call_openai_embedding(text, model)
+        call_openai_embedding(text, model, cfg)
 
       :ollama ->
-        call_ollama_embedding(text, model)
+        call_ollama_embedding(text, model, cfg)
 
       _ ->
         {:error, :unsupported_provider}
@@ -106,8 +106,8 @@ defmodule NeuralBridge.LLM do
   defp build_system_prompt(rag_context) when is_list(rag_context) and length(rag_context) > 0 do
     context_text =
       rag_context
-      |> Enum.map_join("\n\n", fn chunk ->
-        "Source: #{chunk[:source_document] || "Unknown"}\n#{chunk[:content]}"
+      |> Enum.map_join("\\n\\n", fn chunk ->
+        "Source: #{chunk[:source_document] || "Unknown"}\\n#{chunk[:content]}"
       end)
 
     """
@@ -147,7 +147,7 @@ defmodule NeuralBridge.LLM do
   defp parse_context_to_messages(context) do
     # Simple parsing of "role: content" format
     context
-    |> String.split("\n")
+    |> String.split("\\n")
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
     |> Enum.map(fn line ->
@@ -163,8 +163,7 @@ defmodule NeuralBridge.LLM do
     |> Enum.take(-10)  # Keep last 10 messages for context
   end
 
-  defp call_openai_chat(messages, model, temperature, streaming) do
-    cfg = config()
+  defp call_openai_chat(messages, model, temperature, streaming, cfg) do
     api_key = cfg.openai.api_key
 
     if is_nil(api_key) do
@@ -202,9 +201,7 @@ defmodule NeuralBridge.LLM do
     end
   end
 
-  defp call_ollama_chat(messages, model, temperature, streaming) do
-    cfg = config()
-
+  defp call_ollama_chat(messages, model, temperature, streaming, cfg) do
     body = %{
       model: model,
       messages: messages,
@@ -231,8 +228,8 @@ defmodule NeuralBridge.LLM do
     end
   end
 
-  defp call_openai_embedding(text, model) do
-    api_key = get_openai_api_key()
+  defp call_openai_embedding(text, model, cfg) do
+    api_key = cfg.openai.api_key
 
     if is_nil(api_key) do
       {:error, :missing_api_key}
@@ -247,7 +244,7 @@ defmodule NeuralBridge.LLM do
         input: text
       }
 
-      case Req.post("#{@openai_api_url}/embeddings",
+      case Req.post("#{cfg.openai.base_url}/embeddings",
              json: body,
              headers: headers,
              receive_timeout: 30_000
@@ -266,13 +263,13 @@ defmodule NeuralBridge.LLM do
     end
   end
 
-  defp call_ollama_embedding(text, model) do
+  defp call_ollama_embedding(text, model, cfg) do
     body = %{
       model: model,
       prompt: text
     }
 
-    case Req.post("#{@ollama_api_url}/embeddings",
+    case Req.post("#{cfg.ollama.base_url}/api/embeddings",
            json: body,
            receive_timeout: 30_000
          ) do
@@ -342,7 +339,8 @@ defmodule NeuralBridge.LLM do
   end
 
   defp get_openai_models do
-    api_key = get_openai_api_key()
+    cfg = config()
+    api_key = cfg.openai.api_key
 
     if is_nil(api_key) do
       {:error, :missing_api_key}
@@ -351,7 +349,7 @@ defmodule NeuralBridge.LLM do
         {"Authorization", "Bearer #{api_key}"}
       ]
 
-      case Req.get("#{@openai_api_url}/models", headers: headers) do
+      case Req.get("#{cfg.openai.base_url}/models", headers: headers) do
         {:ok, %{status: 200, body: %{"data" => models}}} ->
           model_names = Enum.map(models, & &1["id"])
           {:ok, model_names}
@@ -363,7 +361,8 @@ defmodule NeuralBridge.LLM do
   end
 
   defp get_ollama_models do
-    case Req.get("#{@ollama_api_url}/tags") do
+    cfg = config()
+    case Req.get("#{cfg.ollama.base_url}/api/tags") do
       {:ok, %{status: 200, body: %{"models" => models}}} ->
         model_names = Enum.map(models, & &1["name"])
         {:ok, model_names}
@@ -381,14 +380,10 @@ defmodule NeuralBridge.LLM do
   end
 
   defp test_ollama_connection do
-    case Req.get("#{@ollama_api_url}/tags") do
+    cfg = config()
+    case Req.get("#{cfg.ollama.base_url}/api/tags") do
       {:ok, %{status: 200}} -> {:ok, :connected}
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  defp get_openai_api_key do
-    Application.get_env(:neural_bridge, :openai_api_key) ||
-      System.get_env("OPENAI_API_KEY")
   end
 end
