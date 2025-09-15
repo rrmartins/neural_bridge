@@ -28,11 +28,11 @@ echo "OPENAI_DEFAULT_MODEL=gpt-4" >> .env
 ```bash
 # Install Ollama first
 curl -fsSL https://ollama.com/install.sh | sh
-ollama pull llama2
+ollama pull deepseek-r1:latest
 
 # Configure .env
 echo "LLM_PROVIDER=ollama" > .env
-echo "OLLAMA_DEFAULT_MODEL=llama2" >> .env
+echo "OLLAMA_DEFAULT_MODEL=deepseek-r1:latest" >> .env
 ```
 
 ### 3️⃣ Run and Test
