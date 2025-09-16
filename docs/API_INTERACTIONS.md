@@ -5,12 +5,12 @@
 ### 1. Query Processing
 
 #### POST /api/proxy/query
-Endpoint principal para processamento de queries com fallback inteligente.
+Main endpoint for query processing with intelligent fallback.
 
 **Request:**
 ```json
 {
-  "query": "Como implementar autenticação JWT em Node.js?",
+  "query": "How to implement JWT authentication in Node.js?",
   "session_id": "user_session_123",
   "user_id": "user_456",
   "model": "gpt-4",
@@ -23,7 +23,7 @@ Endpoint principal para processamento de queries com fallback inteligente.
 ```json
 {
   "success": true,
-  "response": "Para implementar autenticação JWT em Node.js...",
+  "response": "To implement JWT authentication in Node.js...",
   "metadata": {
     "source": "llm",
     "confidence_score": 0.89,
@@ -44,19 +44,19 @@ Endpoint principal para processamento de queries com fallback inteligente.
 }
 ```
 
-**Pipeline de Decisão:**
-1. **Cache Check** → Se encontrado, retorna imediatamente
-2. **RAG Retrieval** → Busca contexto semântico
-3. **LLM Generation** → Gera resposta com confiança
-4. **Validation** → Aplica guardrails
-5. **API B Fallback** → Se confiança < 0.7
+**Decision Pipeline:**
+1. **Cache Check** → If found, return immediately
+2. **RAG Retrieval** → Search semantic context
+3. **LLM Generation** → Generate response with confidence
+4. **Validation** → Apply guardrails
+5. **API B Fallback** → If confidence < 0.7
 
 ---
 
 ### 2. Health Monitoring
 
 #### GET /api/proxy/health
-Verifica saúde de todos os componentes do sistema.
+Checks health of all system components.
 
 **Response:**
 ```json
@@ -73,7 +73,7 @@ Verifica saúde de todos os componentes do sistema.
 }
 ```
 
-**Componentes Verificados:**
+**Verified Components:**
 - Cache (Cachex) accessibility
 - Database connection
 - OpenAI API connectivity
@@ -85,7 +85,7 @@ Verifica saúde de todos os componentes do sistema.
 ### 3. System Statistics
 
 #### GET /api/proxy/stats
-Retorna estatísticas detalhadas do sistema.
+Returns detailed system statistics.
 
 **Response:**
 ```json
@@ -122,7 +122,7 @@ Retorna estatísticas detalhadas do sistema.
 ### 4. Get Conversation
 
 #### GET /api/conversations/:session_id
-Retorna informações da conversa.
+Returns conversation information.
 
 **Response:**
 ```json
@@ -131,7 +131,7 @@ Retorna informações da conversa.
     "id": "conv_uuid_123",
     "session_id": "user_session_123",
     "user_id": "user_456",
-    "title": "Discussão sobre JWT",
+    "title": "Discussion about JWT",
     "last_activity_at": "2024-01-15T10:25:00Z",
     "message_count": 8
   }
@@ -141,7 +141,7 @@ Retorna informações da conversa.
 ### 5. Get Conversation History
 
 #### GET /api/conversations/:session_id/history
-Retorna histórico completo da conversa.
+Returns complete conversation history.
 
 **Response:**
 ```json
@@ -150,14 +150,14 @@ Retorna histórico completo da conversa.
     {
       "id": "msg_uuid_1",
       "role": "user",
-      "content": "Como implementar JWT?",
+      "content": "How to implement JWT?",
       "timestamp": "2024-01-15T10:20:00Z",
       "metadata": {}
     },
     {
       "id": "msg_uuid_2",
       "role": "assistant",
-      "content": "Para implementar JWT...",
+      "content": "To implement JWT...",
       "timestamp": "2024-01-15T10:20:15Z",
       "metadata": {
         "source": "llm",
@@ -177,12 +177,12 @@ Retorna histórico completo da conversa.
 ### 6. Document Ingestion
 
 #### POST /api/knowledge/ingest
-Ingere documentos para a base de conhecimento RAG.
+Ingests documents into the RAG knowledge base.
 
 **Request:**
 ```json
 {
-  "content": "JWT (JSON Web Token) é um padrão...",
+  "content": "JWT (JSON Web Token) is a standard...",
   "source_document": "jwt_guide.pdf",
   "metadata": {
     "author": "Tech Team",
@@ -205,7 +205,7 @@ Ingere documentos para a base de conhecimento RAG.
 ### 7. List Documents
 
 #### GET /api/knowledge/documents
-Lista todos os documentos na base de conhecimento.
+Lists all documents in the knowledge base.
 
 **Response:**
 ```json
@@ -235,7 +235,7 @@ Lista todos os documentos na base de conhecimento.
 ### 8. Create Training Job
 
 #### POST /api/training/jobs
-Cria job de treinamento (fine-tuning ou distillation).
+Creates training job (fine-tuning or distillation).
 
 **Request:**
 ```json
@@ -263,7 +263,7 @@ Cria job de treinamento (fine-tuning ou distillation).
 ### 9. Training Job Status
 
 #### GET /api/training/jobs/:job_id
-Acompanha progresso do job de treinamento.
+Tracks training job progress.
 
 **Response:**
 ```json
@@ -290,7 +290,7 @@ Acompanha progresso do job de treinamento.
 ### 10. Cache Statistics
 
 #### GET /api/cache/stats
-Estatísticas detalhadas do sistema de cache.
+Detailed cache system statistics.
 
 **Response:**
 ```json
@@ -318,7 +318,7 @@ Estatísticas detalhadas do sistema de cache.
 ### 11. Clear Cache
 
 #### DELETE /api/cache
-Limpa todo o cache (memória + persistente).
+Clears all cache (memory + persistent).
 
 **Response:**
 ```json
@@ -339,7 +339,7 @@ Limpa todo o cache (memória + persistente).
 ### 12. System Information
 
 #### GET /api/admin/system
-Informações detalhadas do sistema para administradores.
+Detailed system information for administrators.
 
 **Response:**
 ```json
@@ -373,7 +373,7 @@ Informações detalhadas do sistema para administradores.
 ### 13. Metrics Export
 
 #### GET /api/admin/metrics
-Exporta métricas em formato Prometheus.
+Exports metrics in Prometheus format.
 
 **Response (text/plain):**
 ```
@@ -408,9 +408,9 @@ neural_bridge_cache_hit_rate_bucket{le="0.9"} 78
 ```
 
 ### Common Error Codes
-- `invalid_params` - Parâmetros obrigatórios ausentes
-- `processing_failed` - Erro interno de processamento
-- `rate_limited` - Limite de taxa excedido
-- `unauthorized` - Token de autenticação inválido
-- `service_unavailable` - Serviço temporariamente indisponível
-- `validation_failed` - Falha na validação de guardrails
+- `invalid_params` - Required parameters missing
+- `processing_failed` - Internal processing error
+- `rate_limited` - Rate limit exceeded
+- `unauthorized` - Invalid authentication token
+- `service_unavailable` - Service temporarily unavailable
+- `validation_failed` - Guardrails validation failure

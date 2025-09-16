@@ -8,7 +8,7 @@
 ```javascript
 import {Socket} from "phoenix"
 
-// Conecta ao socket
+// Connect to socket
 const socket = new Socket("ws://localhost:4000/socket", {
   params: {
     user_id: "user_456",
@@ -18,14 +18,14 @@ const socket = new Socket("ws://localhost:4000/socket", {
 
 socket.connect()
 
-// Junta ao canal da conversa
+// Join conversation channel
 const channel = socket.channel("proxy:user_session_123", {
   user_id: "user_456"
 })
 
 channel.join()
-  .receive("ok", resp => console.log("Conectado!", resp))
-  .receive("error", resp => console.log("Erro na conexão", resp))
+  .receive("ok", resp => console.log("Connected!", resp))
+  .receive("error", resp => console.log("Connection error", resp))
 ```
 
 ---
@@ -37,7 +37,7 @@ channel.join()
 #### Send Query
 ```javascript
 channel.push("query", {
-  query: "Como implementar autenticação JWT?",
+  query: "How to implement JWT authentication?",
   model: "gpt-4",
   temperature: 0.7,
   metadata: {
@@ -49,14 +49,14 @@ channel.push("query", {
 #### Receive Response
 ```javascript
 channel.on("response", payload => {
-  console.log("Resposta:", payload.response)
+  console.log("Response:", payload.response)
   console.log("Metadata:", payload.metadata)
   console.log("Timestamp:", payload.timestamp)
 })
 
-// Exemplo de payload recebido:
+// Example received payload:
 {
-  "response": "Para implementar autenticação JWT em Node.js...",
+  "response": "To implement JWT authentication in Node.js...",
   "metadata": {
     "source": "llm",
     "confidence_score": 0.89,
@@ -73,7 +73,7 @@ channel.on("response", payload => {
 #### Start Streaming Query
 ```javascript
 channel.push("stream_query", {
-  query: "Explique machine learning em detalhes",
+  query: "Explain machine learning in detail",
   model: "gpt-4-turbo",
   temperature: 0.6
 })
@@ -81,37 +81,37 @@ channel.push("stream_query", {
 
 #### Handle Streaming Events
 ```javascript
-// Início do stream
+// Stream start
 channel.on("stream_start", payload => {
-  console.log("Iniciando stream para:", payload.query)
+  console.log("Starting stream for:", payload.query)
   console.log("Timestamp:", payload.timestamp)
 
-  // Limpar área de resposta
+  // Clear response area
   document.getElementById("response").innerHTML = ""
 })
 
-// Tokens chegando em tempo real
+// Tokens arriving in real time
 channel.on("stream_token", payload => {
   const responseArea = document.getElementById("response")
   responseArea.innerHTML += payload.token
 
-  // Auto-scroll para acompanhar
+  // Auto-scroll to follow
   responseArea.scrollTop = responseArea.scrollHeight
 })
 
-// Stream completado
+// Stream completed
 channel.on("stream_complete", () => {
-  console.log("Stream finalizado")
+  console.log("Stream finished")
 
-  // Habilitar nova query
+  // Enable new query
   document.getElementById("send-button").disabled = false
 })
 
-// Erro no stream
+// Stream error
 channel.on("stream_error", payload => {
-  console.error("Erro no stream:", payload.error)
+  console.error("Stream error:", payload.error)
 
-  // Mostrar mensagem de erro
+  // Show error message
   document.getElementById("error").textContent = payload.error
 })
 ```
@@ -158,19 +158,19 @@ function displayMessage(role, content, timestamp) {
 
 #### Send Ping
 ```javascript
-// Heartbeat para manter conexão viva
+// Heartbeat to keep connection alive
 setInterval(() => {
   channel.push("ping")
-}, 30000) // A cada 30 segundos
+}, 30000) // Every 30 seconds
 ```
 
 #### Handle Pong
 ```javascript
 channel.on("pong", payload => {
-  console.log("Pong recebido:", payload.timestamp)
+  console.log("Pong received:", payload.timestamp)
 
-  // Atualizar indicador de conectividade
-  document.getElementById("status").textContent = "Conectado"
+  // Update connectivity indicator
+  document.getElementById("status").textContent = "Connected"
   document.getElementById("status").className = "online"
 })
 ```

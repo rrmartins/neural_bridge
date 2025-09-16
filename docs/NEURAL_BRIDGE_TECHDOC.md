@@ -1,17 +1,17 @@
-# NeuralBridge - Documentação Técnica
+# NeuralBridge - Technical Documentation
 
-## 📋 Visão Geral
+## 📋 Overview
 
-**NeuralBridge** é um proxy LLM inteligente construído em Elixir/Phoenix que atua como uma camada intermediária entre aplicações cliente e provedores de LLM externos. O sistema implementa uma estratégia de fallback em cascata: Cache → RAG → LLM Local/OpenAI → API B externa.
+**NeuralBridge** is an intelligent LLM proxy built in Elixir/Phoenix that acts as an intermediary layer between client applications and external LLM providers. The system implements a cascading fallback strategy: Cache → RAG → Local LLM/OpenAI → External API B.
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-### Componentes Principais
+### Main Components
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Cliente A     │───▶│  NeuralBridge   │───▶│    API B        │
-│   (Projeto A)   │    │     Proxy       │    │   (Fallback)    │
+│   Client A      │───▶│  NeuralBridge   │───▶│    API B        │
+│   (Project A)   │    │     Proxy       │    │   (Fallback)    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -22,133 +22,133 @@
                     └─────────────────┘
 ```
 
-### Pipeline de Decisão
+### Decision Pipeline
 
-1. **Cache Check** - Verifica cache em memória (Cachex) e persistente (PostgreSQL)
-2. **RAG Retrieval** - Busca contexto semântico em pgvector
-3. **LLM Generation** - Gera resposta com OpenAI ou Ollama
-4. **API B Fallback** - Usa API externa se confiança < threshold
-5. **Logging & Training** - Registra todos os pares (query → response)
+1. **Cache Check** - Checks in-memory (Cachex) and persistent (PostgreSQL) cache
+2. **RAG Retrieval** - Searches semantic context in pgvector
+3. **LLM Generation** - Generates response with OpenAI or Ollama
+4. **API B Fallback** - Uses external API if confidence < threshold
+5. **Logging & Training** - Records all pairs (query → response)
 
-## 🔧 Stack Tecnológico
+## 🔧 Technology Stack
 
-- **Phoenix Framework** - API REST + WebSockets
-- **Oban** - Processamento de jobs em background
-- **Cachex + ETS** - Cache híbrido (memória + PostgreSQL)
-- **PostgreSQL + pgvector** - Banco principal + busca semântica
-- **PromEx** - Observabilidade e métricas
-- **Req/Finch** - Cliente HTTP para APIs externas
-- **Broadway** - Ingestão de dados em larga escala
+- **Phoenix Framework** - REST API + WebSockets
+- **Oban** - Background job processing
+- **Cachex + ETS** - Hybrid cache (memory + PostgreSQL)
+- **PostgreSQL + pgvector** - Main database + semantic search
+- **PromEx** - Observability and metrics
+- **Req/Finch** - HTTP client for external APIs
+- **Broadway** - Large-scale data ingestion
 
-## 📊 Esquema do Banco de Dados
+## 📊 Database Schema
 
-### Tabelas Principais
+### Main Tables
 
 ```sql
--- Conversas e sessões
+-- Conversations and sessions
 conversations (id, session_id, user_id, metadata, last_activity_at)
 messages (id, conversation_id, role, content, source, confidence_score)
 
--- Base de conhecimento (RAG)
+-- Knowledge base (RAG)
 knowledge_chunks (id, source_document, content, embedding, metadata)
 
--- Logs e treinamento
+-- Logs and training
 query_logs (id, query, response, source, confidence_score, api_b_called)
 training_jobs (id, status, job_type, progress_percentage, results)
 
--- Cache persistente
+-- Persistent cache
 cache_entries (id, query_hash, query, response, hit_count, expires_at)
 ```
 
-## 🚀 APIs e Endpoints
+## 🚀 APIs and Endpoints
 
 ### REST API
 
 ```http
-POST   /api/proxy/query           # Processa query principal
-GET    /api/proxy/health          # Health check do sistema
-GET    /api/proxy/stats           # Estatísticas do proxy
+POST   /api/proxy/query           # Processes main query
+GET    /api/proxy/health          # System health check
+GET    /api/proxy/stats           # Proxy statistics
 
-GET    /api/conversations/:id     # Histórico da conversa
-DELETE /api/conversations/:id     # Remove conversa
+GET    /api/conversations/:id     # Conversation history
+DELETE /api/conversations/:id     # Remove conversation
 
-POST   /api/knowledge/ingest      # Ingere documentos (RAG)
-GET    /api/knowledge/documents   # Lista documentos
-DELETE /api/knowledge/documents/:doc # Remove documento
+POST   /api/knowledge/ingest      # Ingest documents (RAG)
+GET    /api/knowledge/documents   # List documents
+DELETE /api/knowledge/documents/:doc # Remove document
 
-POST   /api/training/jobs         # Cria job de treinamento
-GET    /api/training/jobs         # Lista jobs
-GET    /api/training/jobs/:id     # Status do job
+POST   /api/training/jobs         # Create training job
+GET    /api/training/jobs         # List jobs
+GET    /api/training/jobs/:id     # Job status
 
-GET    /api/cache/stats           # Estatísticas do cache
-DELETE /api/cache                 # Limpa cache
+GET    /api/cache/stats           # Cache statistics
+DELETE /api/cache                 # Clear cache
 ```
 
 ### WebSocket API
 
 ```javascript
-// Conecta ao canal
+// Connect to channel
 channel = socket.channel("proxy:session_123", {user_id: "user_456"})
 
-// Envia query
-channel.push("query", {query: "Como funciona IA?"})
+// Send query
+channel.push("query", {query: "How does AI work?"})
 
-// Recebe resposta
+// Receive response
 channel.on("response", payload => {
   console.log(payload.response, payload.metadata)
 })
 
-// Streaming em tempo real
-channel.push("stream_query", {query: "Explique machine learning"})
+// Real-time streaming
+channel.push("stream_query", {query: "Explain machine learning"})
 channel.on("stream_token", token => process(token))
 channel.on("stream_complete", () => finish())
 ```
 
-## 🔄 Fluxo de Processamento
+## 🔄 Processing Flow
 
-### 1. Recebimento da Query
+### 1. Query Reception
 ```elixir
-# Cliente → ProxyController → ConversationServer
-ConversationServer.process_query(pid, "Como criar um chatbot?")
+# Client → ProxyController → ConversationServer
+ConversationServer.process_query(pid, "How to create a chatbot?")
 ```
 
-### 2. Pipeline de Decisão
+### 2. Decision Pipeline
 ```elixir
 def process_query_pipeline(query, state, opts) do
   context = build_context(state.messages)
 
-  # Etapa 1: Verifica cache
+  # Step 1: Check cache
   case Cache.get(query, context) do
     {:ok, cached_response} ->
       {:ok, cached_response, %{source: "cache"}}
 
     {:error, :not_found} ->
-      # Etapa 2: RAG + LLM
+      # Step 2: RAG + LLM
       case process_with_rag_and_llm(query, context) do
         {:ok, response, metadata} ->
           Cache.put(query, context, response)
           {:ok, response, metadata}
 
         {:error, :low_confidence} ->
-          # Etapa 3: Fallback API B
+          # Step 3: Fallback API B
           process_with_api_b(query, context)
       end
   end
 end
 ```
 
-### 3. Geração com RAG
+### 3. RAG Generation
 ```elixir
 def process_with_rag_and_llm(query, context) do
-  # Busca contexto semântico
+  # Search semantic context
   {:ok, rag_context} = RAG.retrieve(query, limit: 5)
 
-  # Gera resposta com LLM
+  # Generate response with LLM
   {:ok, response, confidence} = LLM.generate_response(
     query, context, rag_context, model: "gpt-4"
   )
 
-  # Valida com guardrails
+  # Validate with guardrails
   case Guardrails.validate_response(response, query) do
     {:ok, validated} when confidence >= 0.7 ->
       {:ok, validated, %{source: "llm", confidence_score: confidence}}
@@ -158,14 +158,14 @@ def process_with_rag_and_llm(query, context) do
 end
 ```
 
-## 🤖 Configuração de Modelos
+## 🤖 Model Configuration
 
 ### OpenAI
 ```elixir
 # config/config.exs
 config :neural_bridge, :openai_api_key, System.get_env("OPENAI_API_KEY")
 
-# Uso com modelo específico
+# Use with specific model
 LLM.generate_response(query, context, rag_context,
   provider: :openai,
   model: "gpt-4-turbo",
@@ -175,7 +175,7 @@ LLM.generate_response(query, context, rag_context,
 
 ### Ollama
 ```elixir
-# Uso com modelo específico do Ollama
+# Use with specific model do Ollama
 LLM.generate_response(query, context, rag_context,
   provider: :ollama,
   model: "llama2:13b",
@@ -191,18 +191,18 @@ LLM.generate_embedding(text,
 
 ## 📈 Jobs em Background
 
-### Workers Implementados
+### Implemented Workers
 
-1. **EmbedJob** - Gera embeddings para chunks de conhecimento
-2. **TrainJob** - Fine-tuning e distillation de modelos
-3. **CacheCleanupWorker** - Limpeza automática de cache
-4. **TrainingDatasetWorker** - Análise diária e trigger de treinamento
+1. **EmbedJob** - Generates embeddings for knowledge chunks
+2. **TrainJob** - Fine-tuning and model distillation
+3. **CacheCleanupWorker** - Automatic cache cleanup
+4. **TrainingDatasetWorker** - Daily analysis and training trigger
 
 ```elixir
-# Agenda job de embedding
+# Schedule embedding job
 NeuralBridge.Workers.EmbedJob.enqueue_chunk_embedding(chunk_id)
 
-# Cria job de fine-tuning
+# Create fine-tuning job
 NeuralBridge.Workers.TrainJob.create_training_job("fine_tune", %{
   dataset_limit: 1000,
   learning_rate: 0.0001,
@@ -210,29 +210,29 @@ NeuralBridge.Workers.TrainJob.create_training_job("fine_tune", %{
 })
 ```
 
-## 🛡️ Guardrails e Segurança
+## 🛡️ Guardrails and Security
 
-### Validações Implementadas
-- **Detecção de toxicidade** - Patterns para conteúdo prejudicial
-- **Filtragem PII** - Remove informações pessoais (CPF, email, etc)
-- **Validação de qualidade** - Comprimento, repetição, relevância
-- **Validação JSON Schema** - Para responses estruturadas
+### Implemented Validations
+- **Toxicity detection** - Patterns for harmful content
+- **PII filtering** - Removes personal information (CPF, email, etc)
+- **Quality validation** - Length, repetition, relevance
+- **JSON Schema validation** - For structured responses
 
 ```elixir
-# Exemplo de uso
+# Usage example
 case Guardrails.validate_response(response, query) do
   {:ok, clean_response} ->
-    # Response aprovada
+    # Response approved
   {:error, :content_safety_violation} ->
-    # Conteúdo bloqueado
+    # Content blocked
   {:error, :low_relevance} ->
-    # Resposta não relevante
+    # Response not relevant
 end
 ```
 
-## 📊 Métricas e Observabilidade
+## 📊 Metrics and Observability
 
-### Métricas Telemetry
+### Telemetry Metrics
 - `neural_bridge.queries.total` - Total de queries processadas
 - `neural_bridge.cache.hit_rate` - Taxa de acerto do cache
 - `neural_bridge.api_b.fallbacks.total` - Fallbacks para API B
@@ -245,9 +245,9 @@ end
 - Monitoramento de Oban jobs
 - Estatísticas de banco (Ecto)
 
-## 🚀 Deploy e Configuração
+## 🚀 Deploy and Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 ```bash
 # LLM Providers
 export OPENAI_API_KEY="sk-..."
@@ -284,15 +284,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
 ```
 
-## 🔧 Comandos Úteis
+## 🔧 Useful Commands
 
 ```bash
-# Setup inicial
+# Initial setup
 mix deps.get
 mix ecto.create
 mix ecto.migrate
 
-# Desenvolvimento
+# Development
 mix phx.server
 iex -S mix phx.server
 
@@ -307,9 +307,9 @@ iex> NeuralBridge.Cache.stats()
 iex> NeuralBridge.RAG.ingest_document(content, "doc1.pdf")
 ```
 
-## 🎯 Casos de Uso
+## 🎯 Use Cases
 
-### 1. Chatbot Inteligente
+### 1. Intelligent Chatbot
 ```javascript
 // Frontend conecta via WebSocket
 const response = await fetch('/api/proxy/query', {
@@ -323,19 +323,19 @@ const response = await fetch('/api/proxy/query', {
 })
 ```
 
-### 2. Sistema de Suporte
-- Cache automático de perguntas frequentes
-- RAG com base de conhecimento da empresa
-- Fallback para agentes humanos (API B)
-- Treinamento contínuo com feedback
+### 2. Support System
+- Automatic caching of frequently asked questions
+- RAG with company knowledge base
+- Fallback to human agents (API B)
+- Continuous training with feedback
 
-### 3. Assistente de Código
-- Análise de repositórios via RAG
-- Sugestões de código com contexto
-- Revisão automática de pull requests
-- Documentação automática
+### 3. Code Assistant
+- Repository analysis via RAG
+- Context-aware code suggestions
+- Automatic pull request review
+- Automatic documentation
 
-## 🔮 Próximos Passos
+## 🔮 Next Steps
 
 1. **pgvector Integration** - Habilitar busca semântica real
 2. **Função Calling** - Suporte a tools/functions do OpenAI
@@ -346,14 +346,14 @@ const response = await fetch('/api/proxy/query', {
 
 ---
 
-## 📞 Suporte
+## 📞 Support
 
-Para dúvidas técnicas ou contribuições, consulte:
-- Logs: `mix phx.server` ou `/dev/dashboard`
-- Métricas: PromEx dashboards
+For technical questions or contributions, consult:
+- Logs: `mix phx.server` or `/dev/dashboard`
+- Metrics: PromEx dashboards
 - Jobs: Oban Web UI
-- Código: Repositório no GitHub
+- Code: GitHub repository
 
-**Versão:** 1.0.0
-**Última atualização:** 2024
+**Version:** 1.0.0
+**Last update:** 2024
 **Maintainer:** NeuralBridge Team

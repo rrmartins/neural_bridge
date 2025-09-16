@@ -2,46 +2,46 @@
 
 ## ⚙️ Oban Workers Overview
 
-O NeuralBridge utiliza **Oban** para processamento assíncrono de tarefas pesadas, permitindo que a API principal permaneça responsiva enquanto processa embeddings, treinamentos e manutenção do sistema.
+NeuralBridge uses **Oban** for asynchronous processing of heavy tasks, allowing the main API to remain responsive while processing embeddings, training, and system maintenance.
 
 ---
 
-## 🧠 EmbedJob - Geração de Embeddings
+## 🧠 EmbedJob - Embedding Generation
 
-### Responsabilidades
-- Gerar embeddings para chunks de conhecimento
-- Processar documentos em lote
-- Reprocessar embeddings existentes
+### Responsibilities
+- Generate embeddings for knowledge chunks
+- Process documents in batches
+- Reprocess existing embeddings
 
-### Interações
+### Interactions
 
-#### 1. Processar Chunk Individual
+#### 1. Process Individual Chunk
 ```elixir
-# Enfileirar job para chunk específico
+# Queue job for specific chunk
 {:ok, job} = NeuralBridge.Workers.EmbedJob.enqueue_chunk_embedding(chunk_id)
 
-# Job executado automaticamente
+# Job executed automatically
 %Oban.Job{
   args: %{"knowledge_chunk_id" => "chunk_uuid_123"}
 }
 ```
 
-**Fluxo de Execução:**
-1. Busca chunk no banco de dados
-2. Verifica se já possui embedding
-3. Chama LLM para gerar embedding
-4. Salva embedding no banco
-5. Atualiza timestamp de processamento
+**Execution Flow:**
+1. Fetch chunk from database
+2. Check if embedding already exists
+3. Call LLM to generate embedding
+4. Save embedding to database
+5. Update processing timestamp
 
-#### 2. Processar Documento Completo
+#### 2. Process Complete Document
 ```elixir
-# Processa todos os chunks de um documento
+# Process all chunks from a document
 {:ok, job} = NeuralBridge.Workers.EmbedJob.enqueue_document_batch("manual_jwt.pdf")
 
-# Job processará sequencialmente todos os chunks
+# Job will sequentially process all chunks
 ```
 
-**Exemplo de Log:**
+**Log Example:**
 ```
 [info] Generating embedding for chunk: chunk_uuid_123
 [info] Successfully generated embedding for chunk: chunk_uuid_123
@@ -52,28 +52,28 @@ O NeuralBridge utiliza **Oban** para processamento assíncrono de tarefas pesada
 [info] Completed embedding generation for document manual_jwt.pdf: 12/12 successful
 ```
 
-#### 3. Reprocessar Todos os Embeddings
+#### 3. Reprocess All Embeddings
 ```elixir
-# Útil para atualizar modelo de embeddings
+# Useful for updating embedding model
 {:ok, job} = NeuralBridge.Workers.EmbedJob.enqueue_reprocess_all()
 ```
 
 ### Error Handling
-- **Chunk não encontrado**: Job falha com `:chunk_not_found`
-- **Erro na API**: Retry automático até 3 tentativas
-- **Falha no embedding**: Log de erro, continua próximo chunk
+- **Chunk not found**: Job fails with `:chunk_not_found`
+- **API error**: Automatic retry up to 3 attempts
+- **Embedding failure**: Log error, continue to next chunk
 
 ---
 
-## 🎓 TrainJob - Treinamento de Modelos
+## 🎓 TrainJob - Model Training
 
-### Tipos de Treinamento
+### Training Types
 
 #### 1. Fine-tuning
-Treina modelo baseado em dados de feedback positivo.
+Trains model based on positive feedback data.
 
 ```elixir
-# Criar job de fine-tuning
+# Create fine-tuning job
 config = %{
   "dataset_limit" => 1000,
   "learning_rate" => 0.0001,
@@ -85,33 +85,33 @@ config = %{
 {:ok, job} = NeuralBridge.Workers.TrainJob.create_training_job("fine_tune", config)
 ```
 
-**Pipeline de Fine-tuning:**
+**Fine-tuning Pipeline:**
 1. **Dataset Preparation**
-   - Busca query_logs com feedback_score >= 4
-   - Filtra dados não utilizados para treinamento
-   - Formata para padrão de mensagens
-   - Marca como `used_for_training: true`
+   - Fetch query_logs with feedback_score >= 4
+   - Filter data not used for training
+   - Format to message pattern
+   - Mark as `used_for_training: true`
 
 2. **Model Configuration**
-   - Define hiperparâmetros
-   - Configura validação
-   - Prepara ambiente de treinamento
+   - Define hyperparameters
+   - Configure validation
+   - Prepare training environment
 
 3. **Training Execution**
-   - Simula processo de treinamento
-   - Atualiza progresso em tempo real
-   - Emite métricas telemetry
+   - Simulate training process
+   - Update progress in real-time
+   - Emit telemetry metrics
 
 4. **Results Storage**
-   - Salva métricas de treinamento
-   - Gera ID do modelo
-   - Registra tempo total
+   - Save training metrics
+   - Generate model ID
+   - Record total time
 
 #### 2. Distillation
-Treina modelo menor baseado em respostas de API B (teacher model).
+Trains smaller model based on API B responses (teacher model).
 
 ```elixir
-# Criar job de distillation
+# Create distillation job
 config = %{
   "sample_limit" => 500,
   "teacher_confidence_threshold" => 0.8
@@ -120,32 +120,32 @@ config = %{
 {:ok, job} = NeuralBridge.Workers.TrainJob.create_training_job("distillation", config)
 ```
 
-**Pipeline de Distillation:**
+**Distillation Pipeline:**
 1. **Teacher Data Collection**
-   - Coleta respostas de alta qualidade da API B
-   - Filtra por confidence_score >= 0.8
-   - Prepara dataset teacher-student
+   - Collect high-quality API B responses
+   - Filter by confidence_score >= 0.8
+   - Prepare teacher-student dataset
 
 2. **Knowledge Transfer**
-   - Treina modelo local para imitar API B
-   - Otimiza para manter conhecimento
-   - Reduz dependência de API externa
+   - Train local model to mimic API B
+   - Optimize to maintain knowledge
+   - Reduce external API dependency
 
-### Monitoramento de Progresso
+### Progress Monitoring
 
 ```elixir
-# Acompanhar job em tempo real
+# Track job in real-time
 job = Repo.get(TrainingJob, job_id)
 
 case job.status do
-  "pending" -> "Aguardando na fila"
-  "running" -> "#{job.progress_percentage}% concluído"
-  "completed" -> "Concluído: #{inspect(job.results)}"
-  "failed" -> "Erro: #{job.error_message}"
+  "pending" -> "Waiting in queue"
+  "running" -> "#{job.progress_percentage}% completed"
+  "completed" -> "Completed: #{inspect(job.results)}"
+  "failed" -> "Error: #{job.error_message}"
 end
 ```
 
-**Métricas Emitidas:**
+**Emitted Metrics:**
 ```elixir
 :telemetry.execute(
   [:neural_bridge, :training, :progress],
@@ -156,28 +156,28 @@ end
 
 ---
 
-## 🧹 CacheCleanupWorker - Manutenção do Cache
+## 🧹 CacheCleanupWorker - Cache Maintenance
 
-### Execução Programada
+### Scheduled Execution
 ```elixir
-# Configurado no cron para executar a cada hora
+# Configured in cron to run every hour
 {"0 * * * *", NeuralBridge.Workers.CacheCleanupWorker}
 ```
 
-### Operações de Limpeza
+### Cleanup Operations
 
-#### 1. Cache Persistente
-- Remove entradas expiradas do PostgreSQL
-- Limpa entries com `expires_at < now()`
+#### 1. Persistent Cache
+- Remove expired entries from PostgreSQL
+- Clean entries with `expires_at < now()`
 
-#### 2. Cache em Memória
-- Force purge no Cachex
-- Libera memória não utilizada
-- Coleta estatísticas
+#### 2. Memory Cache
+- Force purge in Cachex
+- Free unused memory
+- Collect statistics
 
-#### 3. Métricas de Performance
+#### 3. Performance Metrics
 ```elixir
-# Exemplo de logs gerados
+# Example of generated logs
 [info] Starting cache cleanup task
 [info] Purged 234 expired entries from memory cache
 [info] Cache cleanup freed 15728640 bytes of memory
@@ -199,17 +199,17 @@ end
 
 ---
 
-## 📊 TrainingDatasetWorker - Análise Automática
+## 📊 TrainingDatasetWorker - Automatic Analysis
 
-### Execução Diária
+### Daily Execution
 ```elixir
-# Executado diariamente às 2h da manhã
+# Executed daily at 2 AM
 {"0 2 * * *", NeuralBridge.Workers.TrainingDatasetWorker}
 ```
 
-### Análise de Dados
+### Data Analysis
 
-#### 1. Coleta de Métricas (24h)
+#### 1. Metrics Collection (24h)
 ```elixir
 stats = %{
   total_queries: 1247,
@@ -223,44 +223,44 @@ stats = %{
 }
 ```
 
-#### 2. Triggers Automáticos
+#### 2. Automatic Triggers
 
 **Fine-tuning Trigger:**
 ```elixir
 def should_trigger_fine_tuning?(stats) do
-  stats.positive_feedback >= 50 and      # Feedback suficiente
-  stats.avg_confidence >= 0.6 and       # Confiança razoável
-  stats.fallback_rate < 0.3              # Poucos fallbacks
+  stats.positive_feedback >= 50 and      # Sufficient feedback
+  stats.avg_confidence >= 0.6 and       # Reasonable confidence
+  stats.fallback_rate < 0.3              # Few fallbacks
 end
 ```
 
 **Distillation Trigger:**
 ```elixir
 def should_trigger_distillation?(stats) do
-  stats.fallback_rate > 0.4 and         # Muitos fallbacks
-  stats.api_b_fallbacks >= 100          # Dados suficientes da API B
+  stats.fallback_rate > 0.4 and         # Many fallbacks
+  stats.api_b_fallbacks >= 100          # Sufficient API B data
 end
 ```
 
-#### 3. Configuração Adaptativa
+#### 3. Adaptive Configuration
 
 ```elixir
-# Learning rate baseado na confiança média
+# Learning rate based on average confidence
 def calculate_learning_rate(stats) do
   base_rate = 0.0001
 
   case stats.avg_confidence do
-    conf when conf >= 0.8 -> base_rate * 0.5  # Conservador
+    conf when conf >= 0.8 -> base_rate * 0.5  # Conservative
     conf when conf >= 0.6 -> base_rate         # Normal
-    _ -> base_rate * 2.0                       # Agressivo
+    _ -> base_rate * 2.0                       # Aggressive
   end
 end
 ```
 
-### Exemplo de Trigger Automático
+### Automatic Trigger Example
 
 ```elixir
-# Log de exemplo quando triggering acontece
+# Example log when triggering happens
 [info] Training data analysis: %{
   total_queries: 1247,
   fallback_rate: 0.125,
@@ -286,10 +286,10 @@ end
 # config/config.exs
 config :neural_bridge, Oban,
   queues: [
-    default: 10,      # Jobs gerais (cleanup, análise)
-    embeddings: 5,    # Geração de embeddings
-    training: 3,      # Jobs de treinamento (mais recursos)
-    api_calls: 20     # Chamadas externas (alta concorrência)
+    default: 10,      # General jobs (cleanup, analysis)
+    embeddings: 5,    # Embedding generation
+    training: 3,      # Training jobs (more resources)
+    api_calls: 20     # External calls (high concurrency)
   ]
 ```
 
@@ -297,19 +297,19 @@ config :neural_bridge, Oban,
 
 #### Sequential Processing
 ```elixir
-# 1. Ingere documento
+# 1. Ingest document
 {:ok, chunks} = RAG.ingest_document(content, "doc.pdf")
 
-# 2. Processa embeddings em lote
+# 2. Process embeddings in batch
 {:ok, embed_job} = EmbedJob.enqueue_document_batch("doc.pdf")
 
-# 3. Aguarda conclusão para usar em RAG
-Process.sleep(5000)  # Em prod, usar job dependency
+# 3. Wait for completion to use in RAG
+Process.sleep(5000)  # In prod, use job dependency
 ```
 
 #### Conditional Jobs
 ```elixir
-# TrainingDatasetWorker decide qual job criar
+# TrainingDatasetWorker decides which job to create
 case analyze_training_data() do
   {:trigger_fine_tune, config} ->
     TrainJob.enqueue_fine_tune_job(config)
@@ -329,20 +329,20 @@ end
 ### Job Metrics Dashboard
 
 ```elixir
-# Métricas importantes para monitorar
+# Important metrics to monitor
 def get_job_stats do
   %{
-    # Jobs por status
+    # Jobs by status
     jobs_by_status: Oban.count_jobs_by_state(),
 
-    # Performance por queue
+    # Performance by queue
     queue_performance: %{
       "embeddings" => %{avg_duration_ms: 2340, success_rate: 0.98},
       "training" => %{avg_duration_ms: 180000, success_rate: 0.95},
       "default" => %{avg_duration_ms: 450, success_rate: 0.99}
     },
 
-    # Jobs recentes
+    # Recent jobs
     recent_failures: get_recent_failed_jobs(),
     active_training_jobs: get_active_training_jobs()
   }
@@ -352,7 +352,7 @@ end
 ### Alerting Rules
 
 ```elixir
-# Regras de alerta baseadas em métricas
+# Alert rules based on metrics
 def check_job_health do
   cond do
     embedding_queue_depth() > 100 ->
@@ -373,20 +373,20 @@ end
 ### Performance Optimization
 
 ```elixir
-# Configurações de performance por job
+# Performance configurations per job
 defmodule EmbedJob do
   use Oban.Worker,
     queue: :embeddings,
     max_attempts: 3,
-    priority: 1,           # Prioridade média
+    priority: 1,           # Medium priority
     tags: ["embedding"]
 end
 
 defmodule TrainJob do
   use Oban.Worker,
     queue: :training,
-    max_attempts: 1,       # Não retry jobs de treinamento
-    priority: 0,           # Prioridade alta
+    max_attempts: 1,       # Don't retry training jobs
+    priority: 0,           # High priority
     tags: ["training", "ml"]
 end
 ```
@@ -397,7 +397,7 @@ end
 
 ### Scaling Workers
 ```elixir
-# Configuração para produção
+# Production configuration
 config :neural_bridge, Oban,
   repo: NeuralBridge.Repo,
   plugins: [
@@ -408,35 +408,35 @@ config :neural_bridge, Oban,
   queues: [
     default: [limit: 20, paused: false],
     embeddings: [limit: 10, paused: false],
-    training: [limit: 2, paused: false],  # Limitado por recursos
+    training: [limit: 2, paused: false],  # Limited by resources
     api_calls: [limit: 50, paused: false]
   ]
 ```
 
 ### Resource Management
-- **Memory**: Jobs de embedding usam ~50MB por chunk
-- **CPU**: Jobs de treinamento são CPU-intensivos
-- **I/O**: Cache cleanup é I/O bound
-- **Network**: API calls dependem da rede
+- **Memory**: Embedding jobs use ~50MB per chunk
+- **CPU**: Training jobs are CPU-intensive
+- **I/O**: Cache cleanup is I/O bound
+- **Network**: API calls depend on network
 
 ### Error Recovery
 ```elixir
-# Estratégias de recuperação por tipo de erro
+# Recovery strategies by error type
 def handle_job_error(job, error) do
   case {job.worker, error} do
     {"EmbedJob", %{reason: :api_rate_limit}} ->
-      # Reagendar com backoff exponencial
+      # Reschedule with exponential backoff
       schedule_in(minutes: job.attempt * 5)
 
     {"TrainJob", %{reason: :insufficient_data}} ->
-      # Cancelar job, não retry
+      # Cancel job, don't retry
       {:cancel, "Not enough training data"}
 
     {"CacheCleanupWorker", _} ->
-      # Sempre retry cleanup jobs
+      # Always retry cleanup jobs
       {:retry, delay: :timer.minutes(30)}
   end
 end
 ```
 
-Essa documentação cobre todo o sistema de background jobs do NeuralBridge! 🔧
+This documentation covers the entire NeuralBridge background jobs system! 🔧

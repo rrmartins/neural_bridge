@@ -143,14 +143,14 @@ curl http://localhost:4000/api/proxy/stats
 5. 🔄 API B Fallback → Automatic fallback if needed
 ```
 
-## 📊 Observabilidade
+## 📊 Observability
 
-- **PromEx Integration** - Métricas Prometheus
-- **Real-time Stats** - Interface web com métricas ao vivo
-- **Health Checks** - Monitoramento de todos os componentes
-- **Telemetry Events** - Rastreamento detalhado de operações
+- **PromEx Integration** - Prometheus metrics
+- **Real-time Stats** - Web interface with live metrics
+- **Health Checks** - Monitoring of all components
+- **Telemetry Events** - Detailed operation tracking
 
-## 🔧 Arquitetura
+## 🔧 Architecture
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
